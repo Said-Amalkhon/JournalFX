@@ -10,8 +10,26 @@ db.exec('PRAGMA journal_mode = WAL');
 db.exec('PRAGMA foreign_keys = ON');
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    code TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    used INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS trades (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     instrument TEXT NOT NULL,
     side TEXT NOT NULL,
     amount REAL NOT NULL,
@@ -25,10 +43,16 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS weekly_targets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    week_start_date TEXT NOT NULL UNIQUE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    week_start_date TEXT NOT NULL,
     target_amount REAL NOT NULL,
-    created_at TEXT DEFAULT (datetime('now'))
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(user_id, week_start_date)
   );
 `);
+
+// Migrations for existing databases
+try { db.exec('ALTER TABLE trades ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE'); } catch {}
+try { db.exec('ALTER TABLE weekly_targets ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE'); } catch {}
 
 module.exports = db;

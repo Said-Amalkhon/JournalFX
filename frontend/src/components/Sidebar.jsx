@@ -1,11 +1,13 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   List,
   PlusCircle,
   Target,
   TrendingUp,
+  LogOut,
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const nav = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', short: 'Home' },
@@ -15,6 +17,16 @@ const nav = [
 ];
 
 export default function Sidebar() {
+  const { username, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
+
+  const initials = username ? username.slice(0, 2).toUpperCase() : 'TR';
+
   return (
     <>
       {/* ── Desktop sidebar (lg+) ── */}
@@ -56,21 +68,28 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        <div className="px-6 py-5 border-t border-bg-border">
+        <div className="px-4 py-5 border-t border-bg-border">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-purple-500 flex items-center justify-center text-white text-xs font-bold">
-              TR
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              {initials}
             </div>
-            <div>
-              <p className="text-white text-sm font-medium">Trader</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-sm font-medium truncate">{username || 'Trader'}</p>
               <p className="text-muted text-xs">Pro Account</p>
             </div>
+            <button
+              onClick={handleLogout}
+              className="text-muted hover:text-loss transition-colors"
+              title="Sign out"
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </div>
       </aside>
 
       {/* ── Mobile top bar ── */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-bg-secondary border-b border-bg-border flex items-center px-5 h-14">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-bg-secondary border-b border-bg-border flex items-center justify-between px-5 h-14">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
             <TrendingUp size={14} className="text-white" />
@@ -79,6 +98,9 @@ export default function Sidebar() {
             Journal<span className="text-accent">FX</span>
           </span>
         </div>
+        <button onClick={handleLogout} className="text-muted hover:text-loss transition-colors p-1">
+          <LogOut size={18} />
+        </button>
       </header>
 
       {/* ── Mobile bottom nav ── */}

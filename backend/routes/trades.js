@@ -1,16 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const requireAuth = require('../middleware/auth');
+
+router.use(requireAuth);
 
 // GET all trades
 router.get('/', (req, res) => {
   const { filter, limit } = req.query;
+  const uid = req.user.id;
   try {
-    let query = 'SELECT * FROM trades';
-    const params = [];
+    let query = 'SELECT * FROM trades WHERE user_id = ?';
+    const params = [uid];
 
     if (filter === 'profit' || filter === 'loss') {
-      query += ' WHERE result_type = ?';
+      query += ' AND result_type = ?';
       params.push(filter);
     }
     query += ' ORDER BY trade_date DESC, created_at DESC';
@@ -29,7 +33,7 @@ router.get('/', (req, res) => {
 // GET single trade
 router.get('/:id', (req, res) => {
   try {
-    const trade = db.prepare('SELECT * FROM trades WHERE id = ?').get(req.params.id);
+    const trade = db.prepare('SELECT * FROM trades WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
     if (!trade) return res.status(404).json({ error: 'Trade not found' });
     res.json(trade);
   } catch (err) {
@@ -45,10 +49,10 @@ router.post('/', (req, res) => {
   }
   try {
     const stmt = db.prepare(`
-      INSERT INTO trades (instrument, side, amount, result_type, note, reason_tag, mood_tag, trade_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO trades (user_id, instrument, side, amount, result_type, note, reason_tag, mood_tag, trade_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    const result = stmt.run(instrument, side, amount, result_type, note || '', reason_tag || '', mood_tag || '', trade_date);
+    const result = stmt.run(req.user.id, instrument, side, amount, result_type, note || '', reason_tag || '', mood_tag || '', trade_date);
     const trade = db.prepare('SELECT * FROM trades WHERE id = ?').get(result.lastInsertRowid);
     res.status(201).json(trade);
   } catch (err) {
@@ -60,14 +64,14 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   const { instrument, side, amount, result_type, note, reason_tag, mood_tag, trade_date } = req.body;
   try {
-    const existing = db.prepare('SELECT * FROM trades WHERE id = ?').get(req.params.id);
+    const existing = db.prepare('SELECT * FROM trades WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
     if (!existing) return res.status(404).json({ error: 'Trade not found' });
 
     db.prepare(`
       UPDATE trades SET
         instrument = ?, side = ?, amount = ?, result_type = ?,
         note = ?, reason_tag = ?, mood_tag = ?, trade_date = ?
-      WHERE id = ?
+      WHERE id = ? AND user_id = ?
     `).run(
       instrument ?? existing.instrument,
       side ?? existing.side,
@@ -77,7 +81,8 @@ router.put('/:id', (req, res) => {
       reason_tag ?? existing.reason_tag,
       mood_tag ?? existing.mood_tag,
       trade_date ?? existing.trade_date,
-      req.params.id
+      req.params.id,
+      req.user.id
     );
 
     const updated = db.prepare('SELECT * FROM trades WHERE id = ?').get(req.params.id);
@@ -90,7 +95,7 @@ router.put('/:id', (req, res) => {
 // DELETE trade
 router.delete('/:id', (req, res) => {
   try {
-    const result = db.prepare('DELETE FROM trades WHERE id = ?').run(req.params.id);
+    const result = db.prepare('DELETE FROM trades WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
     if (result.changes === 0) return res.status(404).json({ error: 'Trade not found' });
     res.json({ message: 'Trade deleted' });
   } catch (err) {

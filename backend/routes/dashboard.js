@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const requireAuth = require('../middleware/auth');
+
+router.use(requireAuth);
 
 function getWeekStart(date = new Date()) {
   const d = new Date(date);
@@ -17,56 +20,50 @@ function getWeekEnd(weekStart) {
 }
 
 router.get('/', (req, res) => {
+  const uid = req.user.id;
   try {
     const weekStart = getWeekStart();
     const weekEnd = getWeekEnd(weekStart);
 
-    // Total stats
     const totalStats = db.prepare(`
       SELECT
         COUNT(*) as total_trades,
         SUM(CASE WHEN result_type = 'profit' THEN amount ELSE 0 END) as total_profit,
         SUM(CASE WHEN result_type = 'loss' THEN amount ELSE 0 END) as total_loss
-      FROM trades
-    `).get();
+      FROM trades WHERE user_id = ?
+    `).get(uid);
 
-    // Weekly stats
     const weeklyStats = db.prepare(`
       SELECT
         COUNT(*) as weekly_trades,
         SUM(CASE WHEN result_type = 'profit' THEN amount ELSE 0 END) as weekly_profit,
         SUM(CASE WHEN result_type = 'loss' THEN amount ELSE 0 END) as weekly_loss
       FROM trades
-      WHERE trade_date >= ? AND trade_date <= ?
-    `).get(weekStart, weekEnd);
+      WHERE user_id = ? AND trade_date >= ? AND trade_date <= ?
+    `).get(uid, weekStart, weekEnd);
 
-    // Weekly target
-    const target = db.prepare('SELECT * FROM weekly_targets WHERE week_start_date = ?').get(weekStart);
+    const target = db.prepare('SELECT * FROM weekly_targets WHERE user_id = ? AND week_start_date = ?').get(uid, weekStart);
 
-    // Recent trades (last 5)
     const recentTrades = db.prepare(`
-      SELECT * FROM trades ORDER BY trade_date DESC, created_at DESC LIMIT 5
-    `).all();
+      SELECT * FROM trades WHERE user_id = ? ORDER BY trade_date DESC, created_at DESC LIMIT 5
+    `).all(uid);
 
-    // Reason tag analysis
     const reasonStats = db.prepare(`
       SELECT reason_tag, result_type, COUNT(*) as count
       FROM trades
-      WHERE reason_tag != '' AND reason_tag IS NOT NULL
+      WHERE user_id = ? AND reason_tag != '' AND reason_tag IS NOT NULL
       GROUP BY reason_tag, result_type
       ORDER BY count DESC
-    `).all();
+    `).all(uid);
 
-    // Mood tag analysis
     const moodStats = db.prepare(`
       SELECT mood_tag, COUNT(*) as count
       FROM trades
-      WHERE mood_tag != '' AND mood_tag IS NOT NULL
+      WHERE user_id = ? AND mood_tag != '' AND mood_tag IS NOT NULL
       GROUP BY mood_tag
       ORDER BY count DESC
-    `).all();
+    `).all(uid);
 
-    // Daily PnL for chart (last 30 days)
     const dailyPnl = db.prepare(`
       SELECT
         trade_date,
@@ -75,17 +72,16 @@ router.get('/', (req, res) => {
         SUM(CASE WHEN result_type = 'loss' THEN amount ELSE 0 END) as loss,
         COUNT(*) as trade_count
       FROM trades
-      WHERE trade_date >= date('now', '-30 days')
+      WHERE user_id = ? AND trade_date >= date('now', '-30 days')
       GROUP BY trade_date
       ORDER BY trade_date ASC
-    `).all();
+    `).all(uid);
 
     const netPnl = (totalStats.total_profit || 0) - (totalStats.total_loss || 0);
     const weeklyNetPnl = (weeklyStats.weekly_profit || 0) - (weeklyStats.weekly_loss || 0);
     const targetAmount = target?.target_amount || 0;
     const targetProgress = targetAmount > 0 ? Math.min((weeklyNetPnl / targetAmount) * 100, 100) : 0;
 
-    // Days left in week
     const today = new Date();
     const endOfWeek = new Date(weekEnd);
     const daysLeft = Math.max(0, Math.ceil((endOfWeek - today) / (1000 * 60 * 60 * 24)));

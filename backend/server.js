@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 
+const authRouter = require('./routes/auth');
 const tradesRouter = require('./routes/trades');
 const targetsRouter = require('./routes/targets');
 const dashboardRouter = require('./routes/dashboard');
@@ -18,6 +19,7 @@ app.use(express.json());
 // Routes — prefixed with /journalfx for api.amalkhon.tech/journalfx/...
 const BASE = '/journalfx';
 
+app.use(`${BASE}/auth`, authRouter);
 app.use(`${BASE}/trades`, tradesRouter);
 app.use(`${BASE}/targets`, targetsRouter);
 app.use(`${BASE}/dashboard`, dashboardRouter);

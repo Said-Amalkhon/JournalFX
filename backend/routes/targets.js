@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const requireAuth = require('../middleware/auth');
+
+router.use(requireAuth);
 
 function getWeekStart(date = new Date()) {
   const d = new Date(date);
@@ -14,7 +17,7 @@ function getWeekStart(date = new Date()) {
 router.get('/current', (req, res) => {
   try {
     const weekStart = getWeekStart();
-    const target = db.prepare('SELECT * FROM weekly_targets WHERE week_start_date = ?').get(weekStart);
+    const target = db.prepare('SELECT * FROM weekly_targets WHERE user_id = ? AND week_start_date = ?').get(req.user.id, weekStart);
     res.json(target || { target_amount: 0, week_start_date: weekStart });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -24,7 +27,7 @@ router.get('/current', (req, res) => {
 // GET all targets history
 router.get('/', (req, res) => {
   try {
-    const targets = db.prepare('SELECT * FROM weekly_targets ORDER BY week_start_date DESC').all();
+    const targets = db.prepare('SELECT * FROM weekly_targets WHERE user_id = ? ORDER BY week_start_date DESC').all(req.user.id);
     res.json(targets);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -40,12 +43,12 @@ router.post('/', (req, res) => {
 
   try {
     db.prepare(`
-      INSERT INTO weekly_targets (week_start_date, target_amount)
-      VALUES (?, ?)
-      ON CONFLICT(week_start_date) DO UPDATE SET target_amount = excluded.target_amount
-    `).run(weekStart, target_amount);
+      INSERT INTO weekly_targets (user_id, week_start_date, target_amount)
+      VALUES (?, ?, ?)
+      ON CONFLICT(user_id, week_start_date) DO UPDATE SET target_amount = excluded.target_amount
+    `).run(req.user.id, weekStart, target_amount);
 
-    const target = db.prepare('SELECT * FROM weekly_targets WHERE week_start_date = ?').get(weekStart);
+    const target = db.prepare('SELECT * FROM weekly_targets WHERE user_id = ? AND week_start_date = ?').get(req.user.id, weekStart);
     res.json(target);
   } catch (err) {
     res.status(500).json({ error: err.message });
