@@ -122,7 +122,7 @@ export default function AddTrade() {
         )}
 
         {/* Basic Info Card */}
-        <div className="card p-6 space-y-5">
+        <div className="card p-4 sm:p-6 space-y-5">
           <h2 className="text-white font-semibold text-sm uppercase tracking-wider">Trade Details</h2>
 
           {/* Instrument */}
@@ -255,7 +255,7 @@ export default function AddTrade() {
         </div>
 
         {/* Trade Reflection Score — Killer Feature */}
-        <div className="card p-6">
+        <div className="card p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center">
               <span className="text-accent text-sm">✦</span>
@@ -263,7 +263,7 @@ export default function AddTrade() {
             <h2 className="text-white font-semibold">Trade Reflection Score</h2>
           </div>
           <p className="text-muted text-sm mb-5">Why was this trade a {form.result_type}?</p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {REASON_TAGS.map(tag => (
               <button
                 type="button"
@@ -283,7 +283,7 @@ export default function AddTrade() {
         </div>
 
         {/* Mood Tag */}
-        <div className="card p-6">
+        <div className="card p-4 sm:p-6">
           <h2 className="text-white font-semibold mb-2">Mood Tag</h2>
           <p className="text-muted text-sm mb-4">How were you feeling when you took this trade?</p>
           <div className="flex gap-2 flex-wrap">

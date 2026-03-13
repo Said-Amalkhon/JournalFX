@@ -94,7 +94,7 @@ export default function Dashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KPICard
           title="Total Profit"
           value={fmt(d.totalProfit || 0)}
@@ -129,9 +129,9 @@ export default function Dashboard() {
       </div>
 
       {/* Chart + Weekly summary */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* PnL Chart */}
-        <div className="card col-span-2 p-6">
+        <div className="card lg:col-span-2 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-white font-semibold">PnL Chart</h3>
@@ -170,7 +170,7 @@ export default function Dashboard() {
         </div>
 
         {/* Weekly Summary */}
-        <div className="card p-6 flex flex-col">
+        <div className="card p-4 sm:p-6 flex flex-col">
           <h3 className="text-white font-semibold mb-5">This Week</h3>
           <div className="space-y-4 flex-1">
             <div className="flex justify-between items-center">
@@ -226,9 +226,9 @@ export default function Dashboard() {
       </div>
 
       {/* Reflection Score + Recent Trades */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Trade Reflection Score */}
-        <div className="card p-6">
+        <div className="card p-4 sm:p-6">
           <h3 className="text-white font-semibold mb-5">Reflection Score</h3>
           <div className="space-y-4">
             {(lossReasons.length > 0 || winReasons.length > 0) ? (
@@ -276,7 +276,7 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Trades */}
-        <div className="card col-span-2 p-6">
+        <div className="card lg:col-span-2 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-white font-semibold">Recent Trades</h3>
             <button

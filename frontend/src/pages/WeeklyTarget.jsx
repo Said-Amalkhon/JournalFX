@@ -83,7 +83,7 @@ export default function WeeklyTarget() {
       </div>
 
       {/* Status card */}
-      <div className="card p-6">
+      <div className="card p-4 sm:p-6">
         <div className="flex items-center gap-4 mb-6">
           <div className={`w-12 h-12 rounded-2xl ${sc.bg} flex items-center justify-center`}>
             <StatusIcon size={22} className={sc.color} />
@@ -115,18 +115,18 @@ export default function WeeklyTarget() {
             </div>
 
             {/* Stats row */}
-            <div className="grid grid-cols-3 gap-4 mt-6">
-              <div className="bg-bg-secondary rounded-xl p-4 text-center">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-6">
+              <div className="bg-bg-secondary rounded-xl p-3 sm:p-4 text-center">
                 <p className="text-muted text-xs mb-1">Achieved</p>
-                <p className="text-profit font-bold font-mono text-lg">{fmt(achieved)}</p>
+                <p className="text-profit font-bold font-mono text-sm sm:text-lg">{fmt(achieved)}</p>
               </div>
-              <div className="bg-bg-secondary rounded-xl p-4 text-center">
+              <div className="bg-bg-secondary rounded-xl p-3 sm:p-4 text-center">
                 <p className="text-muted text-xs mb-1">Remaining</p>
-                <p className="text-white font-bold font-mono text-lg">{fmt(remaining)}</p>
+                <p className="text-white font-bold font-mono text-sm sm:text-lg">{fmt(remaining)}</p>
               </div>
-              <div className="bg-bg-secondary rounded-xl p-4 text-center">
+              <div className="bg-bg-secondary rounded-xl p-3 sm:p-4 text-center">
                 <p className="text-muted text-xs mb-1">Target</p>
-                <p className="text-accent font-bold font-mono text-lg">{fmt(targetAmount)}</p>
+                <p className="text-accent font-bold font-mono text-sm sm:text-lg">{fmt(targetAmount)}</p>
               </div>
             </div>
 
@@ -148,7 +148,7 @@ export default function WeeklyTarget() {
       </div>
 
       {/* Set target form */}
-      <div className="card p-6">
+      <div className="card p-4 sm:p-6">
         <h2 className="text-white font-semibold mb-1">
           {targetAmount > 0 ? 'Update Target' : 'Set Weekly Target'}
         </h2>

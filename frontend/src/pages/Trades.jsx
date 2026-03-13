@@ -50,36 +50,36 @@ export default function Trades() {
       </div>
 
       {/* Summary bar */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="card p-4 border-profit/20 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-profit-dim flex items-center justify-center">
-            <TrendingUp size={16} className="text-profit" />
+      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        <div className="card p-3 sm:p-4 border-profit/20 flex items-center gap-3">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-profit-dim flex items-center justify-center flex-shrink-0">
+            <TrendingUp size={15} className="text-profit" />
           </div>
-          <div>
-            <p className="text-muted text-xs">Total Profit</p>
-            <p className="text-profit font-bold font-mono text-lg">
+          <div className="min-w-0">
+            <p className="text-muted text-xs">Profit</p>
+            <p className="text-profit font-bold font-mono text-sm sm:text-lg truncate">
               +${totalProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
           </div>
         </div>
-        <div className="card p-4 border-loss/20 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-loss-dim flex items-center justify-center">
-            <TrendingDown size={16} className="text-loss" />
+        <div className="card p-3 sm:p-4 border-loss/20 flex items-center gap-3">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-loss-dim flex items-center justify-center flex-shrink-0">
+            <TrendingDown size={15} className="text-loss" />
           </div>
-          <div>
-            <p className="text-muted text-xs">Total Loss</p>
-            <p className="text-loss font-bold font-mono text-lg">
+          <div className="min-w-0">
+            <p className="text-muted text-xs">Loss</p>
+            <p className="text-loss font-bold font-mono text-sm sm:text-lg truncate">
               -${totalLoss.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
           </div>
         </div>
-        <div className="card p-4 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-            <Filter size={16} className="text-accent" />
+        <div className="card p-3 sm:p-4 flex items-center gap-3">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
+            <Filter size={15} className="text-accent" />
           </div>
           <div>
             <p className="text-muted text-xs">Win Rate</p>
-            <p className="text-white font-bold font-mono text-lg">{winRate}%</p>
+            <p className="text-white font-bold font-mono text-sm sm:text-lg">{winRate}%</p>
           </div>
         </div>
       </div>
