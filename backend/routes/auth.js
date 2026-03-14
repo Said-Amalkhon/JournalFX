@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const db = require('../db');
+const requireAuth = require('../middleware/auth');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod';
@@ -124,6 +125,50 @@ router.post('/reset-password', async (req, res) => {
   const hash = await bcrypt.hash(password, 10);
   db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, payload.sub);
 
+  res.json({ ok: true });
+});
+
+// GET /auth/profile
+router.get('/profile', requireAuth, (req, res) => {
+  const user = db.prepare('SELECT id, username, email, avatar, created_at FROM users WHERE id = ?').get(req.user.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  res.json(user);
+});
+
+// PUT /auth/profile — update email and/or avatar
+router.put('/profile', requireAuth, (req, res) => {
+  const { email, avatar } = req.body;
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const newEmail = email || user.email;
+  if (email && email !== user.email) {
+    const taken = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email, req.user.id);
+    if (taken) return res.status(409).json({ error: 'Email already taken' });
+  }
+
+  db.prepare('UPDATE users SET email = ?, avatar = ? WHERE id = ?').run(
+    newEmail,
+    avatar !== undefined ? avatar : user.avatar,
+    req.user.id
+  );
+
+  const updated = db.prepare('SELECT id, username, email, avatar, created_at FROM users WHERE id = ?').get(req.user.id);
+  res.json(updated);
+});
+
+// PUT /auth/change-password
+router.put('/change-password', requireAuth, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Both fields required' });
+  if (newPassword.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  const ok = await bcrypt.compare(currentPassword, user.password_hash);
+  if (!ok) return res.status(401).json({ error: 'Current password is incorrect' });
+
+  const hash = await bcrypt.hash(newPassword, 10);
+  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, req.user.id);
   res.json({ ok: true });
 });
 

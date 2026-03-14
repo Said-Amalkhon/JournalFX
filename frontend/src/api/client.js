@@ -37,6 +37,9 @@ export const api = {
   forgotPassword: (login) => client.post('/auth/forgot-password', { login }).then(r => r.data),
   verifyCode: (login, code) => client.post('/auth/verify-code', { login, code }).then(r => r.data),
   resetPassword: (resetToken, password) => client.post('/auth/reset-password', { resetToken, password }).then(r => r.data),
+  getProfile: () => client.get('/auth/profile').then(r => r.data),
+  updateProfile: (data) => client.put('/auth/profile', data).then(r => r.data),
+  changePassword: (currentPassword, newPassword) => client.put('/auth/change-password', { currentPassword, newPassword }).then(r => r.data),
 
   // Dashboard
   getDashboard: () => client.get('/dashboard').then(r => r.data),

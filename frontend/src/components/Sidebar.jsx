@@ -6,6 +6,7 @@ import {
   Target,
   TrendingUp,
   LogOut,
+  UserCircle,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -14,6 +15,7 @@ const nav = [
   { to: '/trades', icon: List, label: 'Trade History', short: 'History' },
   { to: '/add-trade', icon: PlusCircle, label: 'Add Trade', short: 'Add' },
   { to: '/weekly-target', icon: Target, label: 'Weekly Target', short: 'Target' },
+  { to: '/profile', icon: UserCircle, label: 'Profile', short: 'Profile' },
 ];
 
 export default function Sidebar() {
@@ -21,6 +23,7 @@ export default function Sidebar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    if (!confirm('Are you sure you want to sign out?')) return;
     logout();
     navigate('/login', { replace: true });
   };
@@ -104,7 +107,7 @@ export default function Sidebar() {
       </header>
 
       {/* ── Mobile bottom nav ── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-bg-secondary border-t border-bg-border grid grid-cols-4">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-bg-secondary border-t border-bg-border grid grid-cols-5">
         {nav.map(({ to, icon: Icon, short }) => (
           <NavLink
             key={to}
@@ -117,11 +120,11 @@ export default function Sidebar() {
             {({ isActive }) => (
               <>
                 {to === '/add-trade' ? (
-                  <div className="w-11 h-11 rounded-2xl bg-accent flex items-center justify-center shadow-glow -mt-5 border-4 border-bg-primary">
-                    <Icon size={19} className="text-white" />
+                  <div className="w-10 h-10 rounded-2xl bg-accent flex items-center justify-center shadow-glow -mt-5 border-4 border-bg-primary">
+                    <Icon size={17} className="text-white" />
                   </div>
                 ) : (
-                  <Icon size={20} />
+                  <Icon size={19} />
                 )}
                 <span className="text-[10px] font-medium leading-none">{short}</span>
                 {isActive && to !== '/add-trade' && (

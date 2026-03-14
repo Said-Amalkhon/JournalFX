@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Trades from './pages/Trades';
 import AddTrade from './pages/AddTrade';
 import WeeklyTarget from './pages/WeeklyTarget';
+import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -60,6 +61,11 @@ export default function App() {
           <Route path="/weekly-target" element={
             <ProtectedRoute>
               <AppLayout><WeeklyTarget /></AppLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <AppLayout><Profile /></AppLayout>
             </ProtectedRoute>
           } />
         </Routes>

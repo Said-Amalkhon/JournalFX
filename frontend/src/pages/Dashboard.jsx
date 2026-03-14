@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
 } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, BarChart2, Plus, Target } from 'lucide-react';
 import { format } from 'date-fns';
@@ -64,10 +64,16 @@ export default function Dashboard() {
 
   const d = data || {};
   const weekly = d.weekly || {};
-  const chartData = (d.dailyPnl || []).map(row => ({
-    date: (() => { try { return format(new Date(row.trade_date + 'T00:00:00'), 'MMM d'); } catch { return row.trade_date; } })(),
-    pnl: row.net_pnl,
-  }));
+  // Cumulative equity curve
+  let running = 0;
+  const chartData = (d.dailyPnl || []).map(row => {
+    running += row.net_pnl;
+    return {
+      date: (() => { try { return format(new Date(row.trade_date + 'T00:00:00'), 'MMM d'); } catch { return row.trade_date; } })(),
+      pnl: Math.round(running * 100) / 100,
+    };
+  });
+  const chartPositive = running >= 0;
 
   // Top reason for losses and wins
   const lossReasons = (d.reasonStats || []).filter(r => r.result_type === 'loss').slice(0, 3);
@@ -143,22 +149,27 @@ export default function Dashboard() {
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="pnlGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
+                  <linearGradient id="pnlGradPos" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#22C55E" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="pnlGradNeg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1E1E3A" vertical={false} />
                 <XAxis dataKey="date" tick={{ fill: '#8B8BAD', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#8B8BAD', fontSize: 11 }} axisLine={false} tickLine={false}
-                  tickFormatter={v => `$${v}`} />
+                  tickFormatter={v => `$${v}`} width={55} />
                 <Tooltip content={<CustomTooltip />} />
+                <ReferenceLine y={0} stroke="#2A2A50" strokeDasharray="4 4" />
                 <Area
                   type="monotone" dataKey="pnl"
-                  stroke="#6366F1" strokeWidth={2}
-                  fill="url(#pnlGrad)"
-                  dot={{ fill: '#6366F1', r: 3, strokeWidth: 0 }}
-                  activeDot={{ fill: '#6366F1', r: 5, strokeWidth: 0 }}
+                  stroke={chartPositive ? '#22C55E' : '#EF4444'} strokeWidth={2}
+                  fill={chartPositive ? 'url(#pnlGradPos)' : 'url(#pnlGradNeg)'}
+                  dot={false}
+                  activeDot={{ fill: chartPositive ? '#22C55E' : '#EF4444', r: 4, strokeWidth: 0 }}
                 />
               </AreaChart>
             </ResponsiveContainer>

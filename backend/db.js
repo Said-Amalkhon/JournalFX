@@ -54,6 +54,7 @@ db.exec(`
 // Migrations for existing databases
 try { db.exec('ALTER TABLE trades ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE'); } catch {}
 try { db.exec('ALTER TABLE weekly_targets ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE'); } catch {}
+try { db.exec('ALTER TABLE users ADD COLUMN avatar TEXT DEFAULT NULL'); } catch {}
 
 // Migrate weekly_targets from old UNIQUE(week_start_date) to UNIQUE(user_id, week_start_date)
 // Check if old constraint exists by inspecting the table's SQL
