@@ -42,11 +42,12 @@ router.post('/', (req, res) => {
   const weekStart = week_start_date || getWeekStart();
 
   try {
-    db.prepare(`
-      INSERT INTO weekly_targets (user_id, week_start_date, target_amount)
-      VALUES (?, ?, ?)
-      ON CONFLICT(user_id, week_start_date) DO UPDATE SET target_amount = excluded.target_amount
-    `).run(req.user.id, weekStart, target_amount);
+    const existing = db.prepare('SELECT id FROM weekly_targets WHERE user_id = ? AND week_start_date = ?').get(req.user.id, weekStart);
+    if (existing) {
+      db.prepare('UPDATE weekly_targets SET target_amount = ? WHERE id = ?').run(target_amount, existing.id);
+    } else {
+      db.prepare('INSERT INTO weekly_targets (user_id, week_start_date, target_amount) VALUES (?, ?, ?)').run(req.user.id, weekStart, target_amount);
+    }
 
     const target = db.prepare('SELECT * FROM weekly_targets WHERE user_id = ? AND week_start_date = ?').get(req.user.id, weekStart);
     res.json(target);

@@ -55,4 +55,26 @@ db.exec(`
 try { db.exec('ALTER TABLE trades ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE'); } catch {}
 try { db.exec('ALTER TABLE weekly_targets ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE'); } catch {}
 
+// Migrate weekly_targets from old UNIQUE(week_start_date) to UNIQUE(user_id, week_start_date)
+// Check if old constraint exists by inspecting the table's SQL
+try {
+  const tableInfo = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='weekly_targets'").get();
+  if (tableInfo && tableInfo.sql && !tableInfo.sql.includes('UNIQUE(user_id') && !tableInfo.sql.includes('user_id, week_start_date')) {
+    db.exec(`
+      CREATE TABLE weekly_targets_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        week_start_date TEXT NOT NULL,
+        target_amount REAL NOT NULL,
+        created_at TEXT DEFAULT (datetime('now')),
+        UNIQUE(user_id, week_start_date)
+      );
+      INSERT INTO weekly_targets_new (id, user_id, week_start_date, target_amount, created_at)
+        SELECT id, user_id, week_start_date, target_amount, created_at FROM weekly_targets;
+      DROP TABLE weekly_targets;
+      ALTER TABLE weekly_targets_new RENAME TO weekly_targets;
+    `);
+  }
+} catch {}
+
 module.exports = db;
